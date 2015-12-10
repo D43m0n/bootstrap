@@ -3,9 +3,11 @@
 # Adapted from https://puppetlabs.com/blog/bootstrap-rackspace-cloud-servers-puppet-and-libcloud
 # and https://www.digitalocean.com/community/tutorials/how-to-install-puppet-in-standalone-mode-on-centos-7
 
-#### Check for required tool ####
 LSB=lsb_release
-type -P "${LSB}" > /dev/null && echo "${LSB} found, continuing..." || { echo "${LSB} not found, install first! Now exiting..."; exit 1; }
+function do_lsb {
+    echo "${LSB} wasn't found, probably a Red Hat family. Attempting install..."
+    type -P "yum" > /dev/null && { echo "yum found, continuing..."; yum install -y redhat-lsb; } || { echo "yum not found, trying dnf"; dnf install -y redhat-lsb; }
+}
 
 #### functions ####
 function do_el {
@@ -25,11 +27,11 @@ function do_fedora {
     echo "Fedora version: ${1}"
     
     case ${1} in
-        [20-21])
+        2[01])
             echo "This Fedora version uses yum"
             PACKAGER=yum
             ;;
-        [22-29])
+        2[234])
             echo "Puppet has no full support yet..."
             exit 3
             echo "This Fedora version uses dnf"
@@ -64,6 +66,9 @@ function do_ubuntu {
     # Third, install Puppet
     apt-get -y install puppet
 }
+
+#### Check for required tool ####
+type -P "${LSB}" > /dev/null && echo "${LSB} found, continuing..." || { echo "${LSB} not found, install first!"; do_lsb; }
 
 ##### Determine distro ####
 DISTRO=$(lsb_release -si)
