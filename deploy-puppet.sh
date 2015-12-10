@@ -8,8 +8,8 @@ LSB=lsb_release
 type -P "${LSB}" > /dev/null && echo "${LSB} found, continuing..." || { echo "${LSB} not found, install first! Now exiting..."; exit 1; }
 
 #### functions ####
-function do_centos {
-    echo "CentOS version: ${1}"
+function do_el {
+    echo "Enterprise Linux version: ${1}"
     
     # First, upgrade packages
     yum -y update
@@ -69,9 +69,9 @@ function do_ubuntu {
 DISTRO=$(lsb_release -si)
 
 case ${DISTRO} in
-    CentOS)
-        echo "CentOS detected"
-        do_centos $(lsb_release -sr | cut -d'.' -f1)
+    CentOS|RedHatEnterpriseServer)
+        echo "Enterprise Linux detected"
+        do_el $(lsb_release -sr | cut -d'.' -f1)
         ;;
     Fedora)
         echo "Fedora detected"
