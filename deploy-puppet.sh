@@ -7,9 +7,6 @@
 LSB=lsb_release
 type -P "${LSB}" > /dev/null && echo "${LSB} found, continuing..." || { echo "${LSB} not found, install first! Now exiting..."; exit 1; }
 
-#### Determine distro ####
-DISTRO=$(lsb_release -si)
-
 #### functions ####
 function do_centos {
     echo "CentOS version: ${1}"
@@ -22,6 +19,35 @@ function do_centos {
 
     # Third, install Puppet
     yes | yum -y install puppet
+}
+
+function do_fedora {
+    echo "Fedora version: ${1}"
+    
+    case ${1} in
+        [20-21])
+            echo "This Fedora version uses yum"
+            PACKAGER=yum
+            ;;
+        [22-29])
+            echo "Puppet has no full support yet..."
+            exit 3
+            echo "This Fedora version uses dnf"
+            PACKAGER=dnf
+            ;;
+        *)
+            echo "Fedora version not supported by Puppet repo..."
+            exit 3
+    esac
+
+    # First, upgrade packages
+    ${PACKAGER} -y update
+
+    # Second, install PuppetLabs repository
+    rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-pc1-fedora-${1}.noarch.rpm
+
+    # Third, install Puppet
+    yes | ${PACKAGER} -y install puppet
 }
 
 function do_ubuntu {
@@ -39,11 +65,17 @@ function do_ubuntu {
     apt-get -y install puppet
 }
 
-#### determine OS ####
+##### Determine distro ####
+DISTRO=$(lsb_release -si)
+
 case ${DISTRO} in
     CentOS)
         echo "CentOS detected"
         do_centos $(lsb_release -sr | cut -d'.' -f1)
+        ;;
+    Fedora)
+        echo "Fedora detected"
+        do_fedora $(lsb_release -sr | cut -d'.' -f1)
         ;;
     Ubuntu)
         echo "Ubuntu detected"
