@@ -11,7 +11,7 @@ function do_lsb {
 
 #### functions ####
 function do_el {
-    echo "Enterprise Linux version: ${1}"
+    echo "${DISTRO} version: ${1}"
     
     # First, upgrade packages
     yum -y update
@@ -24,21 +24,21 @@ function do_el {
 }
 
 function do_fedora {
-    echo "Fedora version: ${1}"
+    echo "${DISTRO} version: ${1}"
     
     case ${1} in
         2[01])
-            echo "This Fedora version uses yum"
+            echo "This ${DISTRO} version uses yum"
             PACKAGER=yum
             ;;
         2[234])
             echo "Puppet has no full support yet..."
             exit 3
-            echo "This Fedora version uses dnf"
+            echo "This ${DISTRO} version uses dnf"
             PACKAGER=dnf
             ;;
         *)
-            echo "Fedora version not supported by Puppet repo..."
+            echo "${DISTRO} version not supported by Puppet repo..."
             exit 3
     esac
 
@@ -52,8 +52,8 @@ function do_fedora {
     yes | ${PACKAGER} -y install puppet
 }
 
-function do_ubuntu {
-    echo "Ubuntu codename: ${1}"
+function do_debian_based {
+    echo "${DISTRO} codename: ${1}"
 
     # First, upgrade packages
     apt-get update
@@ -75,16 +75,16 @@ DISTRO=$(lsb_release -si)
 
 case ${DISTRO} in
     CentOS|RedHatEnterpriseServer)
-        echo "Enterprise Linux detected"
+        echo "${DISTRO} detected"
         do_el $(lsb_release -sr | cut -d'.' -f1)
         ;;
     Fedora)
-        echo "Fedora detected"
+        echo "${DISTRO} detected"
         do_fedora $(lsb_release -sr | cut -d'.' -f1)
         ;;
-    Ubuntu)
-        echo "Ubuntu detected"
-        do_ubuntu $(lsb_release -sc)
+    Ubuntu|Debian)
+        echo "${DISTRO} detected"
+        do_debian_based $(lsb_release -sc)
         ;;
     *)
         echo "Unsupported distribution. Sorry..."
