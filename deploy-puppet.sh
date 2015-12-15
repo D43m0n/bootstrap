@@ -6,7 +6,7 @@
 LSB=lsb_release
 function do_lsb {
     echo "${LSB} wasn't found, probably a Red Hat family. Attempting install..."
-    type -P "yum" > /dev/null && { echo "yum found, continuing..."; yum install -y redhat-lsb; } || { echo "yum not found, trying dnf"; dnf install -y redhat-lsb; }
+    type -P "yum" > /dev/null && { echo "yum found, continuing..."; yum update -y; yum install -y redhat-lsb-core; } || { echo "yum not found, trying dnf"; dnf update -y; dnf install -y redhat-lsb-core; }
 }
 
 #### functions ####
