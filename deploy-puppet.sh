@@ -1,7 +1,10 @@
 #!/bin/bash
 # set -x
 # Adapted from https://puppetlabs.com/blog/bootstrap-rackspace-cloud-servers-puppet-and-libcloud
-# and https://www.digitalocean.com/community/tutorials/how-to-install-puppet-in-standalone-mode-on-centos-7
+# and 
+# https://www.digitalocean.com/community/tutorials/how-to-install-puppet-in-standalone-mode-on-centos-7
+# and
+# https://www.digitalocean.com/community/tutorials/how-to-set-up-a-masterless-puppet-environment-on-ubuntu-14-04
 
 LSB=lsb_release
 function do_lsb {
@@ -65,6 +68,20 @@ function do_debian_based {
 
     # Third, install Puppet
     apt-get -y install puppet
+}
+
+function do_initial_puppet {
+    # run puppet to initially set up auto-deploy
+    puppet apply /etc/puppet/manifests/site.pp
+}
+
+function do_puppet_repo_clone {
+    # change directory, make backup and clone the 'puppet' repo
+    cd /etc
+    mv puppet/ puppet-bak.$(date +%F-%s)
+    git clone http://fqdn/puppet.git /etc/puppet
+
+    do_initial_puppet
 }
 
 #### Check for required tool ####
