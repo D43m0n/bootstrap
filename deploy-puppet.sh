@@ -6,7 +6,14 @@
 # and
 # https://www.digitalocean.com/community/tutorials/how-to-set-up-a-masterless-puppet-environment-on-ubuntu-14-04
 
+# some variables
 LSB=lsb_release
+USERNAME=${1}
+PASSWD=${2}
+REPOHOST=${3}
+TEAM=${4}
+REPONAME=${5}
+
 function do_lsb {
     echo "${LSB} wasn't found, probably a Red Hat family. Attempting install..."
     type -P "yum" > /dev/null && { echo "yum found, continuing..."; yum update -y; yum install -y redhat-lsb-core; } || { echo "yum not found, trying dnf"; dnf update -y; dnf install -y redhat-lsb-core; }
@@ -24,6 +31,9 @@ function do_el {
 
     # Third, install Puppet
     yes | yum -y install puppet
+
+    # Fourth, set up puppet
+    do_puppet_repo_clone
 }
 
 function do_fedora {
@@ -53,6 +63,9 @@ function do_fedora {
 
     # Third, install Puppet
     yes | ${PACKAGER} -y install puppet
+
+    # Fourth, set up puppet
+    do_puppet_repo_clone
 }
 
 function do_debian_based {
@@ -68,6 +81,9 @@ function do_debian_based {
 
     # Third, install Puppet
     apt-get -y install puppet
+
+    # Fourth, set up puppet
+    do_puppet_repo_clone
 }
 
 function do_initial_puppet {
@@ -79,7 +95,7 @@ function do_puppet_repo_clone {
     # change directory, make backup and clone the 'puppet' repo
     cd /etc
     mv puppet/ puppet-bak.$(date +%F-%s)
-    git clone http://fqdn/puppet.git /etc/puppet
+    git clone https://${USERNAME}:${PASSWD}@${REPOHOST}/${TEAM}/${REPONAME} /etc/puppet
 
     do_initial_puppet
 }
