@@ -6,13 +6,40 @@
 # and
 # https://www.digitalocean.com/community/tutorials/how-to-set-up-a-masterless-puppet-environment-on-ubuntu-14-04
 
-# some variables
+# some variables, some are used privately, some are set up using parameters
 LSB=lsb_release
-USERNAME=${1}
-PASSWD=${2}
-REPOHOST=${3}
-TEAM=${4}
-REPONAME=${5}
+
+# need exactly all 5 required parameters
+if [ "$#" -ne 10 ]; then
+    echo "Illegal number of parameters"
+    exit 5
+else
+    # if we get 5 parameters, check and set them, otherwise exit
+    while getopts 'u:p:h:t:r:' opt; do
+        case $opt in
+            u) 
+                USERNAME="$OPTARG"
+                ;;
+            p) 
+                PASSWD="$OPTARG"
+                ;;
+            h) 
+                REPOHOST="$OPTARG"
+                ;;
+            t) 
+                TEAM="$OPTARG"
+                ;;
+            r) 
+                REPONAME="$OPTARG"
+                ;;
+            *) 
+                echo "unknown parameter"
+                exit 4
+            ;;
+        esac
+    done
+fi
+
 
 function do_lsb {
     echo "${LSB} wasn't found, probably a Red Hat family. Attempting install..."
