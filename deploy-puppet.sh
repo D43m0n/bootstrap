@@ -10,6 +10,7 @@
 LSB=lsb_release
 PACKAGES="puppet-agent git"
 PUPPETPATH="/etc/profile.d/puppet-agent.sh"
+PUPPETLABS="/etc/puppetlabs"
 
 # need exactly all 5 required parameters
 if [ "$#" -ne 10 ]; then
@@ -128,10 +129,10 @@ function do_initial_puppet {
 function do_puppet_repo_clone {
     # change directory, make backup and clone the 'puppet' repo
     cd /etc
-    if [ -d "puppet" ]; then
-        mv puppet/ puppet-bak.$(date +%F-%s)
+    if [ -d ${PUPPETLABS} ]; then
+        mv ${PUPPETLABS}/ ${PUPPETLABS}-bak.$(date +%F-%s)
     fi
-    git clone https://${USERNAME}:${PASSWD}@${REPOHOST}/${TEAM}/${REPONAME} /etc/puppet
+    git clone https://${USERNAME}:${PASSWD}@${REPOHOST}/${TEAM}/${REPONAME} /etc/${PUPPETLABS}
 
     do_initial_puppet
 }
