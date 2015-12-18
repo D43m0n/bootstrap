@@ -17,4 +17,4 @@ Simply execute a oneliner with some parameters. For example as a user with sudo 
 curl https://raw.githubusercontent.com/D43m0n/bootstrap/master/deploy-puppet.sh | sudo bash /dev/stdin -u <username> -p <password> -h <hostname> -t <team name> -r <repository name>
 ```
 
-Al the default output is printed on `stdout`.
+All the default output is printed on `stdout`.
