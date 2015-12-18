@@ -8,7 +8,8 @@
 
 # some variables, some are used privately, some are set up using parameters
 LSB=lsb_release
-PACKAGES="puppet git"
+PACKAGES="puppet-agent git"
+PUPPETPATH="/etc/profile.d/puppet-agent.sh"
 
 # need exactly all 5 required parameters
 if [ "$#" -ne 10 ]; then
@@ -115,6 +116,10 @@ function do_debian_based {
 }
 
 function do_initial_puppet {
+    # Add /opt/puppetlabs/bin to $PATH variable
+    if [ -f ${PUPPETPATH} ]; then
+        source ${PUPPETPATH}
+    fi
     # run puppet to initially set up auto-deploy
     puppet apply /etc/puppet/manifests/site.pp
 }
