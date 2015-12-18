@@ -122,7 +122,9 @@ function do_initial_puppet {
 function do_puppet_repo_clone {
     # change directory, make backup and clone the 'puppet' repo
     cd /etc
-    mv puppet/ puppet-bak.$(date +%F-%s)
+    if [ -d "puppet" ]; then
+        mv puppet/ puppet-bak.$(date +%F-%s)
+    fi
     git clone https://${USERNAME}:${PASSWD}@${REPOHOST}/${TEAM}/${REPONAME} /etc/puppet
 
     do_initial_puppet
