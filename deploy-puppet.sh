@@ -123,7 +123,7 @@ function do_initial_puppet {
         source ${PUPPETPATH}
     fi
     # run puppet to initially set up auto-deploy
-    puppet apply /etc/puppet/manifests/site.pp
+    puppet apply ${PUPPETLABS}/code/environments/production/manifests/site.pp
 }
 
 function do_puppet_repo_clone {
@@ -132,7 +132,7 @@ function do_puppet_repo_clone {
     if [ -d ${PUPPETLABS} ]; then
         mv ${PUPPETLABS}/ ${PUPPETLABS}-bak.$(date +%F-%s)
     fi
-    git clone https://${USERNAME}:${PASSWD}@${REPOHOST}/${TEAM}/${REPONAME} /etc/${PUPPETLABS}
+    git clone https://${USERNAME}:${PASSWD}@${REPOHOST}/${TEAM}/${REPONAME} ${PUPPETLABS}
 
     do_initial_puppet
 }
