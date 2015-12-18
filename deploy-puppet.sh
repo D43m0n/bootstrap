@@ -8,6 +8,7 @@
 
 # some variables, some are used privately, some are set up using parameters
 LSB=lsb_release
+PACKAGES="puppet git"
 
 # need exactly all 5 required parameters
 if [ "$#" -ne 10 ]; then
@@ -57,7 +58,7 @@ function do_el {
     rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-pc1-el-${1}.noarch.rpm
 
     # Third, install Puppet
-    yes | yum -y install puppet
+    yes | yum -y install ${PACKAGES}
 
     # Fourth, set up puppet
     do_puppet_repo_clone
@@ -88,8 +89,8 @@ function do_fedora {
     # Second, install PuppetLabs repository
     rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-pc1-fedora-${1}.noarch.rpm
 
-    # Third, install Puppet
-    yes | ${PACKAGER} -y install puppet
+    # Third, install Puppet and git
+    yes | ${PACKAGER} -y install ${PACKAGES}
 
     # Fourth, set up puppet
     do_puppet_repo_clone
@@ -106,8 +107,8 @@ function do_debian_based {
     wget https://apt.puppetlabs.com/puppetlabs-release-pc1-${1}.deb
     dpkg -i puppetlabs-release-pc1-${1}.deb
 
-    # Third, install Puppet
-    apt-get -y install puppet
+    # Third, install Puppet and git
+    apt-get -y install ${PACKAGES}
 
     # Fourth, set up puppet
     do_puppet_repo_clone
