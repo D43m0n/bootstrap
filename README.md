@@ -1,7 +1,7 @@
 # bootstrap
 An attempt to bootstrap my Linux machines with the settings I like
 
-## What is it?
+## what is it?
 The idea is that by using a oneliner you can fetch a _bash_ script that adds the official [Puppet Labs repository](https://docs.puppetlabs.com/guides/puppetlabs_package_repositories.html) for a distribution. I intend to use the _Puppet Collections_ so I can choose when to migrate to a newer release at my convenience.
 
 After adding the _Puppet Labs_ repository the Puppet agent is installed. Using _git_, a puppet repository is cloned and applied. This puppet repository can contain the puppet configuration in any way you like. I've dealt with Puppet masters and am leaning towards masterless Puppet with this script.
