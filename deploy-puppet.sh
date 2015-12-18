@@ -107,6 +107,7 @@ function do_debian_based {
     # Second, install PuppetLabs repository
     wget https://apt.puppetlabs.com/puppetlabs-release-pc1-${1}.deb
     dpkg -i puppetlabs-release-pc1-${1}.deb
+    apt-get update
 
     # Third, install Puppet and git
     apt-get -y install ${PACKAGES}
