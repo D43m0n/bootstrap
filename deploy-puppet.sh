@@ -6,7 +6,12 @@
 # and
 # https://www.digitalocean.com/community/tutorials/how-to-set-up-a-masterless-puppet-environment-on-ubuntu-14-04
 
-# some variables, some are used privately, some are set up using parameters
+
+###################################################################################
+#                                                                                 #
+# some variables, some are used privately, some are set up using parameters       #
+#                                                                                 #
+###################################################################################                                                                                 
 LSB=lsb_release
 PACKAGES="puppet-agent git"
 PUPPETPATH="/etc/profile.d/puppet-agent.sh"
@@ -14,7 +19,12 @@ PUPPETCONF="/etc/puppetlabs"
 PUPPETMODULES="puppetlabs-stdlib"
 PUPPETLABS="/opt/puppetlabs"
 
-# need exactly all 5 required parameters
+
+###################################################################################
+#                                                                                 #
+# process required parameters                                                     #
+#                                                                                 #
+###################################################################################
 if [ "$#" -ne 12 ]; then
     echo "Illegal number of parameters"
     exit 5
@@ -48,13 +58,14 @@ else
     done
 fi
 
+###################################################################################
+#                                                                                 #
+# distribution specific: add Puppet Collections repository                        #
+#                                                                                 #
+###################################################################################
 
-function do_lsb {
-    echo "${LSB} wasn't found, probably a Red Hat family. Attempting install..."
-    type -P "yum" > /dev/null && { echo "yum found, continuing..."; yum update -y; yum install -y redhat-lsb-core; } || { echo "yum not found, trying dnf"; dnf update -y; dnf install -y redhat-lsb-core; }
-}
+#### Enterprise Linux ####
 
-#### functions ####
 function do_el {
     echo "${DISTRO} version: ${1}"
     
@@ -70,6 +81,8 @@ function do_el {
     # Fourth, set up puppet
     do_puppet_repo_clone
 }
+
+#### Fedora ####
 
 function do_fedora {
     echo "${DISTRO} version: ${1}"
@@ -103,6 +116,8 @@ function do_fedora {
     do_puppet_repo_clone
 }
 
+#### Debian based ####
+
 function do_debian_based {
     echo "${DISTRO} codename: ${1}"
 
@@ -123,29 +138,27 @@ function do_debian_based {
     do_puppet_repo_clone
 }
 
-function do_puppetmodules_from_forge {
-    if [ -d ${PUPPETLABS}/puppet/modules ]; then
-        puppet module install --target-dir ${PUPPETLABS}/puppet/modules ${PUPPETMODULES}
+###################################################################################
+#                                                                                 #
+# Puppet specific: clone repository, install modules from Puppet Forge, choose    #
+# Puppet environment                                                              #
+#                                                                                 #
+###################################################################################
 
-    else
-        echo "${PUPPETLABS}/puppet/modules doesn't exist, exiting..."
-        exit 6
+#### Clone the Puppet repository ####
+
+function do_puppet_repo_clone {
+    # change directory, make backup and clone the 'puppet' repo
+    cd /etc
+    if [ -d ${PUPPETCONF} ]; then
+        mv ${PUPPETCONF}/ ${PUPPETCONF}-bak.$(date +%F-%s)
     fi
+    git clone https://${USERNAME}:${PASSWD}@${REPOHOST}/${TEAM}/${REPONAME} ${PUPPETCONF}
+
+    do_initial_puppet
 }
 
-function do_puppet_environment {
-    if [ ${ENVIRONMENT} == 'production' ]; then
-        echo "default puppet environment chosen (${ENVIRONMENT}), no change there"
-    else
-        # check if chosen puppet environment directory exists
-        if [ -d ${PUPPETCONF}/code/environments/${ENVIRONMENT} ]; then
-            puppet resource file_line puppet-env path=${PUPPETCONF}/puppet/puppet.conf line="environment=${ENVIRONMENT}" match='^environment='
-        else
-            echo "chosen environment (${ENVIRONMENT}) directory doesn't exist, exiting..."
-            exit 8
-        fi
-    fi
-}
+#### Apply initial puppet site manifest ####
 
 function do_initial_puppet {
     # Add /opt/puppetlabs/bin to $PATH variable
@@ -165,22 +178,56 @@ function do_initial_puppet {
     puppet apply ${PUPPETCONF}/code/environments/${ENVIRONMENT}/manifests
 }
 
-function do_puppet_repo_clone {
-    # change directory, make backup and clone the 'puppet' repo
-    cd /etc
-    if [ -d ${PUPPETCONF} ]; then
-        mv ${PUPPETCONF}/ ${PUPPETCONF}-bak.$(date +%F-%s)
-    fi
-    git clone https://${USERNAME}:${PASSWD}@${REPOHOST}/${TEAM}/${REPONAME} ${PUPPETCONF}
+#### Install Puppet modules from Puppet Forge ####
 
-    do_initial_puppet
+function do_puppetmodules_from_forge {
+    if [ -d ${PUPPETLABS}/puppet/modules ]; then
+        puppet module install --target-dir ${PUPPETLABS}/puppet/modules ${PUPPETMODULES}
+
+    else
+        echo "${PUPPETLABS}/puppet/modules doesn't exist, exiting..."
+        exit 6
+    fi
 }
 
-#### Check for required tool ####
+#### Select specific Puppet environment ####
+
+function do_puppet_environment {
+    if [ ${ENVIRONMENT} == 'production' ]; then
+        echo "default puppet environment chosen (${ENVIRONMENT}), no change there"
+    else
+        # check if chosen puppet environment directory exists
+        if [ -d ${PUPPETCONF}/code/environments/${ENVIRONMENT} ]; then
+            puppet resource file_line puppet-env path=${PUPPETCONF}/puppet/puppet.conf line="environment=${ENVIRONMENT}" match='^environment='
+        else
+            echo "chosen environment (${ENVIRONMENT}) directory doesn't exist, exiting..."
+            exit 8
+        fi
+    fi
+}
+
+###################################################################################
+#                                                                                 #
+# generic functions                                                               #
+#                                                                                 #
+###################################################################################
+
+#### brute force install 'redhat-lsb-core' ####
+
+function do_lsb {
+    echo "${LSB} wasn't found, probably a Red Hat family. Attempting install..."
+    type -P "yum" > /dev/null && { echo "yum found, continuing..."; yum update -y; yum install -y redhat-lsb-core; } || { echo "yum not found, trying dnf"; dnf update -y; dnf install -y redhat-lsb-core; }
+}
+
+#### Check for required tool 'lsb_release' ####
+
 type -P "${LSB}" > /dev/null && echo "${LSB} found, continuing..." || { echo "${LSB} not found, install first!"; do_lsb; }
 
 ##### Determine distro ####
+
 DISTRO=$(lsb_release -si)
+
+#### Select the current distribution ####
 
 case ${DISTRO} in
     CentOS|RedHatEnterpriseServer)
