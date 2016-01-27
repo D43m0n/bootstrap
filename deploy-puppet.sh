@@ -116,7 +116,8 @@ function do_debian_based {
     apt-get update
 
     # Third, install Puppet and git
-    apt-get -y install ${PACKAGES}
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get -o Dpkg::Options::="--force-confnew" -y install ${PACKAGES}
 
     # Fourth, set up puppet
     do_puppet_repo_clone
