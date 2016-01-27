@@ -10,15 +10,17 @@
 LSB=lsb_release
 PACKAGES="puppet-agent git"
 PUPPETPATH="/etc/profile.d/puppet-agent.sh"
-PUPPETLABS="/etc/puppetlabs"
+PUPPETCONF="/etc/puppetlabs"
+PUPPETMODULES="puppetlabs-stdlib"
+PUPPETLABS="/opt/puppetlabs"
 
 # need exactly all 5 required parameters
-if [ "$#" -ne 10 ]; then
+if [ "$#" -ne 12 ]; then
     echo "Illegal number of parameters"
     exit 5
 else
     # if we get 5 parameters, check and set them, otherwise exit
-    while getopts 'u:p:h:t:r:' opt; do
+    while getopts 'u:p:h:t:r:e:' opt; do
         case $opt in
             u) 
                 USERNAME="$OPTARG"
@@ -34,6 +36,9 @@ else
                 ;;
             r) 
                 REPONAME="$OPTARG"
+                ;;
+            e)
+                ENVIRONMENT="$OPTARG"
                 ;;
             *) 
                 echo "unknown parameter"
@@ -117,22 +122,54 @@ function do_debian_based {
     do_puppet_repo_clone
 }
 
+function do_puppetmodules_from_forge {
+    if [ -d ${PUPPETLABS}/puppet/modules ]; then
+        puppet module install --target-dir ${PUPPETLABS}/puppet/modules ${PUPPETMODULES}
+
+    else
+        echo "${PUPPETLABS}/puppet/modules doesn't exist, exiting..."
+        exit 6
+    fi
+}
+
+function do_puppet_environment {
+    if [ ${ENVIRONMENT} == 'production']; then
+        echo "default puppet environment chosen (${ENVIRONMENT}), no change there"
+    else
+        # check if chosen puppet environment directory exists
+        if [ -d ${PUPPETCONF}/code/environments/${ENVIRONMENT} ]; then
+            puppet resource file_line puppet-env path=${PUPPETCONF}/puppet/puppet.conf line="environment=${ENVIRONMENT}" match='^environment='
+        else
+            echo "chosen environment (${ENVIRONMENT}) directory doesn't exist, exiting..."
+            exit 8
+        fi
+}
+
 function do_initial_puppet {
     # Add /opt/puppetlabs/bin to $PATH variable
     if [ -f ${PUPPETPATH} ]; then
         source ${PUPPETPATH}
+    else
+        echo "${PUPPETPATH} doesn't exist, exiting..."
+        exit 7
     fi
+    # install puppet modules from the Forge
+    do_puppetmodules_from_forge
+
+    # apply the chosen puppet environment
+    do_puppet_environment
+
     # run puppet to initially set up auto-deploy
-    puppet apply ${PUPPETLABS}/code/environments/production/manifests/site.pp
+    puppet apply ${PUPPETCONF}/code/environments/${ENVIRONMENT}/manifests
 }
 
 function do_puppet_repo_clone {
     # change directory, make backup and clone the 'puppet' repo
     cd /etc
-    if [ -d ${PUPPETLABS} ]; then
-        mv ${PUPPETLABS}/ ${PUPPETLABS}-bak.$(date +%F-%s)
+    if [ -d ${PUPPETCONF} ]; then
+        mv ${PUPPETCONF}/ ${PUPPETCONF}-bak.$(date +%F-%s)
     fi
-    git clone https://${USERNAME}:${PASSWD}@${REPOHOST}/${TEAM}/${REPONAME} ${PUPPETLABS}
+    git clone https://${USERNAME}:${PASSWD}@${REPOHOST}/${TEAM}/${REPONAME} ${PUPPETCONF}
 
     do_initial_puppet
 }
