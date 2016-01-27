@@ -133,7 +133,7 @@ function do_puppetmodules_from_forge {
 }
 
 function do_puppet_environment {
-    if [ ${ENVIRONMENT} == 'production']; then
+    if [ ${ENVIRONMENT} == 'production' ]; then
         echo "default puppet environment chosen (${ENVIRONMENT}), no change there"
     else
         # check if chosen puppet environment directory exists
@@ -143,6 +143,7 @@ function do_puppet_environment {
             echo "chosen environment (${ENVIRONMENT}) directory doesn't exist, exiting..."
             exit 8
         fi
+    fi
 }
 
 function do_initial_puppet {
