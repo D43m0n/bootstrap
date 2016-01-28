@@ -12,6 +12,7 @@
 # some variables, some are used privately, some are set up using parameters       #
 #                                                                                 #
 ###################################################################################                                                                                 
+
 LSB=lsb_release
 PACKAGES="puppet-agent git"
 PUPPETPATH="/etc/profile.d/puppet-agent.sh"
@@ -25,6 +26,7 @@ PUPPETLABS="/opt/puppetlabs"
 # process required parameters                                                     #
 #                                                                                 #
 ###################################################################################
+
 if [ "$#" -ne 12 ]; then
     echo "Illegal number of parameters"
     exit 5
